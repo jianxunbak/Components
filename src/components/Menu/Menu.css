@@ -1,0 +1,132 @@
+.menu-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu-trigger-btn {
+    padding: 0;
+    min-width: 36px;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--neu-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    box-shadow: none;
+    border: 1px solid var(--neu-shadow-medium);
+    transition: all 0.2s ease;
+}
+
+/* Hover: Lifted state */
+.menu-trigger-btn:hover:not(.pressed-latch):not(.active) {
+    background: var(--neu-bg);
+    box-shadow: var(--neu-card-shadow-hover, var(--neu-card-shadow));
+    border: 1px solid transparent;
+}
+
+/* Pressed/Active: Inset state */
+/* We use both the Button's internal .pressed-latch and the Menu's .active state */
+.menu-trigger-btn.pressed-latch,
+.menu-trigger-btn.active,
+.menu-trigger-btn:active {
+    background: var(--neu-btn-bg-pressed);
+    box-shadow: var(--neu-card-shadow-inset-deep);
+    border: 1px solid transparent;
+}
+
+.menu-dropdown-wrapper {
+    position: absolute;
+    z-index: 1000;
+    min-width: 0;
+}
+
+/* Placements */
+.menu-dropdown-wrapper.bottom-right {
+    top: calc(100% + 0.75rem);
+    right: 0;
+}
+
+.menu-dropdown-wrapper.bottom-left {
+    top: calc(100% + 0.75rem);
+    left: 0;
+}
+
+.menu-dropdown-wrapper.top-right {
+    bottom: calc(100% + 0.75rem);
+    right: 0;
+}
+
+.menu-dropdown-wrapper.top-left {
+    bottom: calc(100% + 0.75rem);
+    left: 0;
+}
+
+.menu-content-container {
+    /* Background and shadow are handled by CardAnimator but we can refine */
+    box-shadow: var(--neu-card-shadow-hover) !important;
+    border: none !important;
+}
+
+/* Items Grid */
+.menu-items-grid {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.menu-items-grid.vertical {
+    flex-direction: column;
+}
+
+.menu-items-grid.horizontal {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    min-width: max-content;
+}
+
+/* Button overrides inside the menu to look EXACTLY like card buttons (Square) */
+.menu-items-grid .neu-btn-base {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    justify-content: center;
+    padding: 0;
+    font-size: 0.75rem;
+    border-radius: var(--neu-radius-sm);
+    white-space: nowrap;
+    background: transparent;
+    box-shadow: none;
+    border: 1px solid var(--neu-shadow-medium);
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.menu-items-grid .neu-btn-base:hover:not(.pressed-latch):not(.active) {
+    background: var(--neu-bg);
+    box-shadow: var(--neu-card-shadow-hover);
+    border: 1px solid transparent;
+}
+
+.menu-items-grid .neu-btn-base:active,
+.menu-items-grid .neu-btn-base.pressed-latch,
+.menu-items-grid .neu-btn-base.active {
+    background: var(--neu-btn-bg-pressed);
+    box-shadow: var(--neu-card-shadow-inset-deep);
+    border: 1px solid transparent;
+}
+
+.menu-items-grid.horizontal .neu-btn-base {
+    width: 36px;
+    min-width: 36px;
+}
+
+/* Variant styles if needed */
+.menu-content-container.glass {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
