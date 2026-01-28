@@ -19,6 +19,7 @@ const StyledCard = React.memo(({
     controls,
     persistentControls,
     headerAlign = "center",
+    headerVerticalAlign = "center",
     variant = 'default',
     layout = true,
     noScale = false,
@@ -78,7 +79,7 @@ const StyledCard = React.memo(({
             {(title || finalControls || props.onClose) && (
                 <div
                     className="styled-card-header"
-                    style={{ alignItems: 'center' }}
+                    style={{ alignItems: headerVerticalAlign }}
                 >
                     {title && <div className="styled-card-title" style={{ textAlign: headerAlign === 'start' ? 'left' : headerAlign === 'end' ? 'right' : 'center' }}>{title}</div>}
                     <div className="styled-card-controls-container" style={{ display: 'flex', alignItems: 'center', gap: '0.1rem' }}>

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { Search, X, ArrowRight } from 'lucide-react';
 import { SearchBarAnimator } from '../Animator';
 import './SearchBar.css';
@@ -95,83 +95,113 @@ const SearchBar = ({
         }
     };
 
+    const triggerControls = useAnimation();
+    const prevExpanded = useRef(isExpanded);
+
+    useEffect(() => {
+        if (prevExpanded.current && !isExpanded) {
+            triggerControls.start("bounce");
+        }
+        prevExpanded.current = isExpanded;
+    }, [isExpanded, triggerControls]);
+
     return (
-        <SearchBarAnimator
-            type="fabricSearchBar"
-            active={isExpanded}
-            ref={containerRef}
-            className={`search-bar-container ${isExpanded ? 'active expanded' : ''} ${isPressed ? 'pressed-latch active' : 'hover-pop'} ${className}`}
-            onMouseDown={handlePressStart}
-            onMouseUp={handlePressEnd}
-            onMouseLeave={() => setIsPressed(false)}
-            onTouchStart={handlePressStart}
-            onTouchEnd={handlePressEnd}
-            animate={{
-                width: isExpanded ? expandedWidth : collapsedWidth
+        <motion.div
+            animate={triggerControls}
+            variants={{
+                bounce: {
+                    scaleX: [1, 1.12, 0.92, 1.04, 1],
+                    scaleY: [1, 0.92, 1.08, 0.96, 1],
+                    transition: {
+                        delay: 0.2, // Start bouncing as it finishes collapsing
+                        duration: 0.5,
+                        ease: "easeInOut"
+                    }
+                }
             }}
-            initial={false}
             style={{
-                width: isExpanded ? expandedWidth : collapsedWidth,
                 marginLeft: 'auto',
+                display: 'flex',
+                alignItems: 'center',
                 ...style
             }}
-            transition={{ type: "spring", stiffness: 200, damping: 30 }}
+            className={className}
         >
-            <motion.div
-                layout="position"
-                className="search-bar-icon-wrapper"
+            <SearchBarAnimator
+                type="fabricSearchBar"
+                active={isExpanded}
+                ref={containerRef}
+                className={`search-bar-container ${isExpanded ? 'active expanded' : ''} ${isPressed ? 'pressed-latch active' : 'hover-pop'}`}
+                onMouseDown={handlePressStart}
+                onMouseUp={handlePressEnd}
+                onMouseLeave={() => setIsPressed(false)}
+                onTouchStart={handlePressStart}
+                onTouchEnd={handlePressEnd}
+                animate={{
+                    width: isExpanded ? expandedWidth : collapsedWidth
+                }}
+                initial={false}
+                style={{
+                    width: isExpanded ? expandedWidth : collapsedWidth,
+                }}
+                transition={{ type: "spring", stiffness: 200, damping: 30 }}
             >
-                <Search size={18} />
-            </motion.div>
+                <motion.div
+                    layout="position"
+                    className="search-bar-icon-wrapper"
+                >
+                    <Search size={18} />
+                </motion.div>
 
-            <AnimatePresence>
-                {showContent && (
-                    <motion.div
-                        layout="position"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        style={{ display: 'flex', flex: 1, alignItems: 'center', height: '100%', overflow: 'hidden' }}
-                        transition={{ duration: 0.2 }}
-                    >
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            className="search-bar-input"
-                            placeholder={placeholder}
-                            value={searchValue}
-                            onChange={handleInputChange}
-                            onKeyDown={handleKeyDown}
-                        />
-                        <div className="search-bar-actions">
-                            <AnimatePresence>
-                                {searchValue.length > 0 && (
-                                    <motion.button
-                                        initial={{ opacity: 0, scale: 0.8 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        exit={{ opacity: 0, scale: 0.8 }}
-                                        type="button"
-                                        className="tag-remove-btn"
-                                        onClick={handleClear}
-                                        title="Clear search"
-                                    >
-                                        <X size={14} />
-                                    </motion.button>
-                                )}
-                            </AnimatePresence>
-                            <button
-                                type="button"
-                                className={`search-submit-btn ${searchValue ? 'has-text' : ''}`}
-                                onClick={() => onEnter?.(searchValue)}
-                                title="Search"
-                            >
-                                <ArrowRight size={14} />
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </SearchBarAnimator>
+                <AnimatePresence>
+                    {showContent && (
+                        <motion.div
+                            layout="position"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            style={{ display: 'flex', flex: 1, alignItems: 'center', height: '100%', overflow: 'hidden' }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                className="search-bar-input"
+                                placeholder={placeholder}
+                                value={searchValue}
+                                onChange={handleInputChange}
+                                onKeyDown={handleKeyDown}
+                            />
+                            <div className="search-bar-actions">
+                                <AnimatePresence>
+                                    {searchValue.length > 0 && (
+                                        <motion.button
+                                            initial={{ opacity: 0, scale: 0.8 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.8 }}
+                                            type="button"
+                                            className="tag-remove-btn"
+                                            onClick={handleClear}
+                                            title="Clear search"
+                                        >
+                                            <X size={14} />
+                                        </motion.button>
+                                    )}
+                                </AnimatePresence>
+                                <button
+                                    type="button"
+                                    className={`search-submit-btn ${searchValue ? 'has-text' : ''}`}
+                                    onClick={() => onEnter?.(searchValue)}
+                                    title="Search"
+                                >
+                                    <ArrowRight size={14} />
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </SearchBarAnimator>
+        </motion.div>
     );
 };
 

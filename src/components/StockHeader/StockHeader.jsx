@@ -108,6 +108,7 @@ const StockHeader = ({
             title={headerTitle}
             controls={renderButtons()}
             headerAlign="start"
+            headerVerticalAlign="flex-start"
             variant={variant}
             {...props}
         />

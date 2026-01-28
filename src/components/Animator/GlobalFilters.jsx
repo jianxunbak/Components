@@ -97,58 +97,37 @@ const GlobalFilters = () => {
     return (
         <svg style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }} aria-hidden="true">
             <defs>
-                {/* 1. RESTORED & OPTIMIZED FABRIC FILTER */}
-                <filter id="fabric-depth-filter" x="-40%" y="-40%" width="180%" height="180%">
-                    {/* Outer Shadow (Dark) - Optimized Blur */}
-                    <feGaussianBlur ref={blurDarkRef} in="SourceAlpha" stdDeviation="5" result="blurOuterDark" />
-                    <feOffset ref={offsetDarkRef} in="blurOuterDark" dx="4" dy="4" result="offsetOuterDark" />
-                    <feFlood floodColor="var(--neu-shadow-dark)" result="floodOuterDark" />
-                    <feComposite in="floodOuterDark" in2="offsetOuterDark" operator="in" result="shadowOuterDark" />
+                {/* 
+                  SAFARI-ROBUST FILTER 
+                  Uses standard SVG primitives (fast) but creates strong Neumorphic depth.
+                  Avoids CSS drop-shadow chains which can fail in Safari.
+                */}
+                <filter id="fabric-safari-optimized" x="-50%" y="-50%" width="200%" height="200%">
+                    {/* 1. Dark Shadow (Bottom Right) */}
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blurDark" />
+                    <feOffset in="blurDark" dx="4" dy="4" result="offsetDark" />
+                    <feFlood floodColor="var(--neu-shadow-dark)" floodOpacity="1" result="colorDark" />
+                    <feComposite in="colorDark" in2="offsetDark" operator="in" result="shadowDark" />
 
-                    {/* Outer Highlight (Light) - Optimized Blur */}
-                    <feGaussianBlur ref={blurLightRef} in="SourceAlpha" stdDeviation="3" result="blurOuterLight" />
-                    <feOffset ref={offsetLightRef} in="blurOuterLight" dx="-4" dy="-4" result="offsetOuterLight" />
-                    <feFlood floodColor="var(--neu-shadow-light)" result="floodOuterLight" />
-                    <feComposite in="floodOuterLight" in2="offsetOuterLight" operator="in" result="shadowOuterLight" />
+                    {/* 2. Light Highlight (Top Left) */}
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blurLight" />
+                    <feOffset in="blurLight" dx="-4" dy="-4" result="offsetLight" />
+                    <feFlood floodColor="var(--neu-shadow-light)" floodOpacity="1" result="colorLight" />
+                    <feComposite in="colorLight" in2="offsetLight" operator="in" result="shadowLight" />
 
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="0.5" result="featheredGraphic" />
-
-                    {/* Internal Volume (The Dip) - Reduced from 40 to 12 for Safari Perf */}
-                    <feGaussianBlur in="SourceAlpha" stdDeviation="12" result="internalBlur" />
-                    <feFlood floodColor="var(--neu-shadow-dark)" floodOpacity="var(--neu-svg-dip-opacity)" result="floodDip" />
-                    <feComposite in="floodDip" in2="internalBlur" operator="in" result="internalVolume" />
-
-                    {/* Inner Rim Shadow - Reduced from 15 to 6 */}
-                    <feOffset ref={inBevelShadowOffsetRef} dx="6" dy="6" in="SourceAlpha" result="innerDishShadowOffset" />
-                    <feComposite operator="out" in="SourceAlpha" in2="innerDishShadowOffset" result="innerDishShadowBevel" />
-                    <feGaussianBlur ref={inBevelShadowBlurRef} in="innerDishShadowBevel" stdDeviation="6" result="blurInnerDishShadow" />
-                    <feFlood floodColor="var(--neu-shadow-light)" floodOpacity="var(--neu-svg-inner-highlight-intensity)" result="floodInnerDishShadow" />
-                    <feComposite in="floodInnerDishShadow" in2="blurInnerDishShadow" operator="in" result="highlightSoftLip" />
-
-                    {/* Inner Rim Highlight - Reduced from 8 to 4 */}
-                    <feOffset ref={inBevelHighlightOffsetRef} dx="-6" dy="-6" in="SourceAlpha" result="innerDishHighlightOffset" />
-                    <feComposite operator="out" in="SourceAlpha" in2="innerDishHighlightOffset" result="innerDishHighlightBevel" />
-                    <feGaussianBlur ref={inBevelHighlightBlurRef} in="innerDishHighlightBevel" stdDeviation="4" result="blurInnerDishHighlight" />
-                    <feFlood floodColor="var(--neu-shadow-dark)" floodOpacity="var(--neu-svg-inner-shadow-intensity)" result="floodInnerDishHighlight" />
-                    <feComposite in="floodInnerDishHighlight" in2="blurInnerDishHighlight" operator="in" result="shadowSoftLip" />
-
-                    <feMerge>
-                        <feMergeNode in="shadowOuterDark" />
-                        <feMergeNode in="shadowOuterLight" />
-                        <feMergeNode in="featheredGraphic" />
-                        <feMergeNode in="internalVolume" />
-                        <feMergeNode in="shadowSoftLip" />
-                        <feMergeNode in="highlightSoftLip" />
-                    </feMerge>
                 </filter>
 
-                {/* 2. SUBTLE FABRIC FILTER (For SearchBar, etc.) */}
-                <filter id="fabric-subtle-filter" x="-20%" y="-20%" width="140%" height="140%">
-                    {/* NO internal effects to keep edges strictly clean during animation */}
-                    <feMerge>
-                        <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                </filter>
+                {/* 
+                  LIGHTWEIGHT BEVEL GRADIENT
+                  Simulates 3D edge lighting (ridge) using a simple stroke gradient.
+                  Zero GPU cost compared to filters.
+                */}
+                <linearGradient id="neumorphic-bevel-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="var(--neu-shadow-light)" stopOpacity="0.9" />
+                    <stop offset="30%" stopColor="var(--neu-bg)" stopOpacity="0" />
+                    <stop offset="70%" stopColor="var(--neu-bg)" stopOpacity="0" />
+                    <stop offset="100%" stopColor="var(--neu-shadow-dark)" stopOpacity="0.6" />
+                </linearGradient>
             </defs>
         </svg>
     );

@@ -1,4 +1,4 @@
-import { motion, useMotionValue, useTransform, animate as runAnimation } from 'framer-motion';
+import { motion, useMotionValue, useTransform, animate as runAnimation, usePresence } from 'framer-motion';
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 
 // --- 1. The Math: Vertical Fabric Path (The Elastic Shape) ---
@@ -146,30 +146,58 @@ const FabricBackground = React.memo(({ active, isStrokeOnly = false, orientation
                 boxSizing: 'border-box'
             }}
         >
+
+            {/* 1. Dark Shadow Layer - HTML Div Blur (Safari Fix) */}
+            {!isStrokeOnly && orientation !== 'horizontal' && (
+                <div style={{
+                    position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                    transform: 'translate3d(6px, 6px, 0)',
+                    filter: 'blur(8px)',
+                    WebkitFilter: 'blur(8px)',
+                    opacity: 0.8,
+                    zIndex: -1
+                }}>
+                    <svg style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+                        <motion.path d={pathD} fill="var(--neu-shadow-dark)" stroke="none" />
+                    </svg>
+                </div>
+            )}
+
+            {/* 2. Light Highlight Layer - HTML Div Blur (Safari Fix) */}
+            {!isStrokeOnly && orientation !== 'horizontal' && (
+                <div style={{
+                    position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                    transform: 'translate3d(-6px, -6px, 0)',
+                    filter: 'blur(8px)',
+                    WebkitFilter: 'blur(8px)',
+                    opacity: 1,
+                    zIndex: -1
+                }}>
+                    <svg style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+                        <motion.path d={pathD} fill="var(--neu-shadow-light)" stroke="none" />
+                    </svg>
+                </div>
+            )}
+
+            {/* 3. Main Surface */}
             <svg
                 style={{
                     width: '100%', height: '100%', overflow: 'visible', display: 'block',
                     position: 'absolute', top: 0, left: 0,
                     opacity: isReady ? 1 : 0,
-                    transition: 'opacity 0.1s'
+                    transition: 'opacity 0.1s',
+                    zIndex: 0
                 }}
             >
                 <motion.path
                     d={pathD}
                     fill={isStrokeOnly ? "none" : "var(--neu-bg)"}
-                    stroke={isStrokeOnly && orientation === 'horizontal' ? 'var(--neu-border-subtle)' : 'none'}
+                    stroke={isStrokeOnly ? "var(--neu-border-subtle)" : "none"}
                     strokeWidth="1"
                     strokeLinejoin="round"
                     style={{
                         padding: 0,
-                        vectorEffect: 'non-scaling-stroke', // CRITICAL: Stop the border from fatting up
-                        filter: isStrokeOnly
-                            ? 'none'
-                            : orientation === 'horizontal'
-                                ? 'none'
-                                : isAnimating
-                                    ? 'drop-shadow(0px 2px 4px rgba(0,0,0,0.1))'
-                                    : 'url(#fabric-depth-filter)'
+                        vectorEffect: 'non-scaling-stroke'
                     }}
                 />
             </svg>
@@ -222,10 +250,12 @@ const CardAnimator = React.memo(({
 
     if (type === 'fabricCard' || type === 'fabricHorizontal') {
         const BaseComponent = motion[as || 'div'];
+        const [isPresent, safeToRemove] = usePresence();
         const contentScaleX = useMotionValue(1);
         const contentScaleY = useMotionValue(1);
         const prevActive = useRef(null);
         const isHorizontal = type === 'fabricHorizontal';
+        const effectiveActive = active && isPresent;
 
         // Fix doubling: Strip all style-carrying classes from the container using regex
         const cleanClassName = className
@@ -233,14 +263,21 @@ const CardAnimator = React.memo(({
             .trim();
 
         useEffect(() => {
-            if (prevActive.current === active || noScale) return;
+            if (!isPresent && safeToRemove) {
+                const timer = setTimeout(safeToRemove, 500);
+                return () => clearTimeout(timer);
+            }
+        }, [isPresent, safeToRemove]);
+
+        useEffect(() => {
+            if (prevActive.current === effectiveActive || noScale) return;
             const duration = 0.5;
             const ease = "easeInOut";
             const times = [0, 0.4, 1];
             const d = distortionFactor;
 
             if (isHorizontal) {
-                if (active) {
+                if (effectiveActive) {
                     runAnimation(contentScaleX, [1, 1 + (0.04 * d), 1], { duration, times, ease });
                     runAnimation(contentScaleY, [1, 1 - (0.04 * d), 1], { duration, times, ease });
                 } else {
@@ -248,7 +285,7 @@ const CardAnimator = React.memo(({
                     runAnimation(contentScaleY, [1, 1 + (0.03 * d), 1], { duration, times, ease });
                 }
             } else {
-                if (active) {
+                if (effectiveActive) {
                     runAnimation(contentScaleX, [1, 1 - (0.06 * d), 1], { duration, times, ease });
                     runAnimation(contentScaleY, [1, 1 + (0.06 * d), 1], { duration, times, ease });
                 } else {
@@ -256,8 +293,8 @@ const CardAnimator = React.memo(({
                     runAnimation(contentScaleY, [1, 1 - (0.05 * d), 1], { duration, times, ease });
                 }
             }
-            prevActive.current = active;
-        }, [active, contentScaleX, contentScaleY, isHorizontal, noScale, distortionFactor]);
+            prevActive.current = effectiveActive;
+        }, [effectiveActive, contentScaleX, contentScaleY, isHorizontal, noScale, distortionFactor]);
 
         return (
             <BaseComponent
@@ -278,7 +315,7 @@ const CardAnimator = React.memo(({
             >
                 {variant !== 'transparent' && (
                     <FabricBackground
-                        active={active}
+                        active={effectiveActive}
                         orientation={isHorizontal ? 'horizontal' : 'vertical'}
                     />
                 )}
@@ -297,14 +334,7 @@ const CardAnimator = React.memo(({
                 >
                     {children}
                 </motion.div>
-                {/* Stroke Layer on Top */}
-                {variant !== 'transparent' && (
-                    <FabricBackground
-                        active={active}
-                        isStrokeOnly={true}
-                        orientation={isHorizontal ? 'horizontal' : 'vertical'}
-                    />
-                )}
+                {/* Stroke Layer Removed for Borderless Look */}
             </BaseComponent>
         );
     }

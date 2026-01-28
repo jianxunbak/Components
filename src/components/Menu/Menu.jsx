@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { MoreVertical } from 'lucide-react';
 import Button from '../Button/Button';
 import { CardAnimator } from '../Animator';
@@ -59,14 +59,31 @@ const Menu = ({
         };
     }, [isOpen]);
 
+    const triggerControls = useAnimation();
+    const prevIsOpen = useRef(isOpen);
+
+    useEffect(() => {
+        if (prevIsOpen.current && !isOpen) {
+            triggerControls.start("bounce");
+        }
+        prevIsOpen.current = isOpen;
+    }, [isOpen, triggerControls]);
+
     const renderTrigger = () => {
+        const triggerStyle = {
+            opacity: isOpen && orientation === 'horizontal' ? 0 : 1,
+            // Slower transition when reappearing (closing) to create the "faintly appear" effect
+            transition: `opacity ${isOpen ? '0.1s' : '0.5s'} ease-in-out`
+        };
+
         if (trigger) {
             return React.cloneElement(trigger, {
                 onClick: (e) => {
                     if (trigger.props.onClick) trigger.props.onClick(e);
                     toggleMenu(e);
                 },
-                className: `${trigger.props.className || ''} ${isOpen ? 'active' : ''}`
+                className: `${trigger.props.className || ''} ${isOpen ? 'active' : ''}`,
+                style: { ...trigger.props.style, ...triggerStyle }
             });
         }
 
@@ -75,6 +92,7 @@ const Menu = ({
                 className={`menu-trigger-btn ${isOpen ? 'active' : ''}`}
                 onClick={toggleMenu}
                 aria-label="Toggle menu"
+                style={triggerStyle}
             >
                 <MoreVertical size={20} />
             </Button>
@@ -83,14 +101,60 @@ const Menu = ({
 
     return (
         <div className={`menu-wrapper ${className}`} ref={menuRef} {...props}>
-            {renderTrigger()}
+            <motion.div
+                animate={triggerControls}
+                variants={{
+                    bounce: {
+                        scaleX: [1, 1.12, 0.92, 1.04, 1],
+                        scaleY: [1, 0.92, 1.08, 0.96, 1],
+                        transition: {
+                            delay: 0.25, // Start bouncing just before fully closed
+                            duration: 0.5,
+                            ease: "easeInOut" // Smooth elastic feel
+                        }
+                    }
+                }}
+            >
+                {renderTrigger()}
+            </motion.div>
 
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        className={`menu-dropdown-wrapper ${placement}`}
+                        className={`menu-dropdown-wrapper ${placement} ${orientation}`}
                         onClick={(e) => e.stopPropagation()}
-                        variants={{
+                        variants={orientation === 'horizontal' ? {
+                            hidden: {
+                                width: "2.25rem",
+                                opacity: 1,
+                                scale: 1,
+                                y: "-50%",
+                                transformOrigin: placement.includes('right') ? 'center right' : 'center left'
+                            },
+                            visible: {
+                                width: "auto",
+                                opacity: 1,
+                                scale: 1,
+                                y: "-50%",
+                                transition: {
+                                    type: "spring",
+                                    stiffness: 400,
+                                    damping: 30,
+                                    staggerChildren: 0.05
+                                }
+                            },
+                            exit: {
+                                width: "2.25rem",
+                                opacity: [1, 1, 0],
+                                scale: 1,
+                                y: "-50%",
+                                transition: {
+                                    duration: 0.4,
+                                    opacity: { times: [0, 0.8, 1], duration: 0.4 },
+                                    default: { duration: 0.4, ease: "easeInOut" }
+                                }
+                            }
+                        } : {
                             hidden: {
                                 opacity: 0,
                                 scale: 0.92,
@@ -113,7 +177,7 @@ const Menu = ({
                             exit: {
                                 opacity: 0,
                                 scale: 0.95,
-                                transition: { duration: 0.15, ease: "easeOut" }
+                                transition: { duration: 0.4, ease: "easeInOut" }
                             }
                         }}
                         initial="hidden"
@@ -148,7 +212,8 @@ const Menu = ({
                                                     stiffness: 300,
                                                     damping: 20
                                                 }
-                                            }
+                                            },
+                                            exit: { opacity: 0, scale: 0.5, transition: { duration: 0.2 } }
                                         }}
                                         style={{ display: 'flex' }}
                                     >

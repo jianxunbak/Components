@@ -45,7 +45,7 @@ const ButtonAnimator = ({
     if (type === 'button') {
         variants = buttonVariants;
         transition = buttonTransition(active);
-        animate = active ? "pressed" : "hover"; // Default state is hover/initial
+        animate = active ? "pressed" : "initial";
     }
     // --- 2. Button Text ---
     else if (type === 'text') {
@@ -71,6 +71,8 @@ const ButtonAnimator = ({
             variants={variants}
             initial={initial}
             animate={animate}
+            whileHover={type === 'button' ? "hover" : undefined}
+            whileTap={type === 'button' ? "pressed" : undefined}
             transition={transition}
             {...props}
         >
