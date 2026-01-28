@@ -97,33 +97,38 @@ const GlobalFilters = () => {
     return (
         <svg style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }} aria-hidden="true">
             <defs>
-                {/* 1. STANDARD FABRIC FILTER */}
-                <filter id="fabric-depth-filter" x="-50%" y="-50%" width="200%" height="200%">
+                {/* 1. RESTORED & OPTIMIZED FABRIC FILTER */}
+                <filter id="fabric-depth-filter" x="-40%" y="-40%" width="180%" height="180%">
+                    {/* Outer Shadow (Dark) - Optimized Blur */}
                     <feGaussianBlur ref={blurDarkRef} in="SourceAlpha" stdDeviation="5" result="blurOuterDark" />
-                    <feOffset ref={offsetDarkRef} in="blurOuterDark" dx="5" dy="5" result="offsetOuterDark" />
+                    <feOffset ref={offsetDarkRef} in="blurOuterDark" dx="4" dy="4" result="offsetOuterDark" />
                     <feFlood floodColor="var(--neu-shadow-dark)" result="floodOuterDark" />
                     <feComposite in="floodOuterDark" in2="offsetOuterDark" operator="in" result="shadowOuterDark" />
 
+                    {/* Outer Highlight (Light) - Optimized Blur */}
                     <feGaussianBlur ref={blurLightRef} in="SourceAlpha" stdDeviation="3" result="blurOuterLight" />
-                    <feOffset ref={offsetLightRef} in="blurOuterLight" dx="-5" dy="-5" result="offsetOuterLight" />
+                    <feOffset ref={offsetLightRef} in="blurOuterLight" dx="-4" dy="-4" result="offsetOuterLight" />
                     <feFlood floodColor="var(--neu-shadow-light)" result="floodOuterLight" />
                     <feComposite in="floodOuterLight" in2="offsetOuterLight" operator="in" result="shadowOuterLight" />
 
-                    <feGaussianBlur in="SourceGraphic" stdDeviation="0.6" result="featheredGraphic" />
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="0.5" result="featheredGraphic" />
 
-                    <feGaussianBlur in="SourceAlpha" stdDeviation="25" result="internalBlur" />
+                    {/* Internal Volume (The Dip) - Reduced from 40 to 12 for Safari Perf */}
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="12" result="internalBlur" />
                     <feFlood floodColor="var(--neu-shadow-dark)" floodOpacity="var(--neu-svg-dip-opacity)" result="floodDip" />
                     <feComposite in="floodDip" in2="internalBlur" operator="in" result="internalVolume" />
 
-                    <feOffset ref={inBevelShadowOffsetRef} dx="15" dy="15" in="SourceAlpha" result="innerDishShadowOffset" />
+                    {/* Inner Rim Shadow - Reduced from 15 to 6 */}
+                    <feOffset ref={inBevelShadowOffsetRef} dx="6" dy="6" in="SourceAlpha" result="innerDishShadowOffset" />
                     <feComposite operator="out" in="SourceAlpha" in2="innerDishShadowOffset" result="innerDishShadowBevel" />
-                    <feGaussianBlur ref={inBevelShadowBlurRef} in="innerDishShadowBevel" stdDeviation="10" result="blurInnerDishShadow" />
+                    <feGaussianBlur ref={inBevelShadowBlurRef} in="innerDishShadowBevel" stdDeviation="6" result="blurInnerDishShadow" />
                     <feFlood floodColor="var(--neu-shadow-light)" floodOpacity="var(--neu-svg-inner-highlight-intensity)" result="floodInnerDishShadow" />
                     <feComposite in="floodInnerDishShadow" in2="blurInnerDishShadow" operator="in" result="highlightSoftLip" />
 
-                    <feOffset ref={inBevelHighlightOffsetRef} dx="-15" dy="-15" in="SourceAlpha" result="innerDishHighlightOffset" />
+                    {/* Inner Rim Highlight - Reduced from 8 to 4 */}
+                    <feOffset ref={inBevelHighlightOffsetRef} dx="-6" dy="-6" in="SourceAlpha" result="innerDishHighlightOffset" />
                     <feComposite operator="out" in="SourceAlpha" in2="innerDishHighlightOffset" result="innerDishHighlightBevel" />
-                    <feGaussianBlur ref={inBevelHighlightBlurRef} in="innerDishHighlightBevel" stdDeviation="8" result="blurInnerDishHighlight" />
+                    <feGaussianBlur ref={inBevelHighlightBlurRef} in="innerDishHighlightBevel" stdDeviation="4" result="blurInnerDishHighlight" />
                     <feFlood floodColor="var(--neu-shadow-dark)" floodOpacity="var(--neu-svg-inner-shadow-intensity)" result="floodInnerDishHighlight" />
                     <feComposite in="floodInnerDishHighlight" in2="blurInnerDishHighlight" operator="in" result="shadowSoftLip" />
 
