@@ -163,7 +163,13 @@ const FabricBackground = React.memo(({ active, isStrokeOnly = false, orientation
                     style={{
                         padding: 0,
                         vectorEffect: 'non-scaling-stroke', // CRITICAL: Stop the border from fatting up
-                        filter: isStrokeOnly ? 'none' : (orientation === 'horizontal' ? 'none' : 'url(#fabric-depth-filter)')
+                        filter: isStrokeOnly
+                            ? 'none'
+                            : orientation === 'horizontal'
+                                ? 'none'
+                                : isAnimating
+                                    ? 'drop-shadow(0px 2px 4px rgba(0,0,0,0.1))'
+                                    : 'url(#fabric-depth-filter)'
                     }}
                 />
             </svg>
