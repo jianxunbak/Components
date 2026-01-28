@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import StyledCard from '../StyledCard/StyledCard';
-import { BarChart, Bar, Cell, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
+
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import Button from '../Button/Button';
 import './TableChart.css';
@@ -35,40 +35,32 @@ const TableChart = ({
         switch (col.type) {
             case 'chart':
                 // Expects value to be array of numbers or objects
-                // We map it to Recharts format if needed
-                const chartData = Array.isArray(value) ? value.map((v, i) => ({
-                    index: i,
-                    value: typeof v === 'object' ? v.value : v
-                })) : [];
+                // We map it to a normalized structure
+                const rawChartData = Array.isArray(value) ? value.map((v) =>
+                    typeof v === 'object' ? v.value : v
+                ) : [];
+
+                if (rawChartData.length === 0) return <div className="cell-chart" />;
+
+                // Find max absolute value for scaling
+                const maxVal = Math.max(...rawChartData.map(v => Math.abs(v))) || 1;
 
                 return (
                     <div className="cell-chart">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={chartData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
-                                <Tooltip
-                                    cursor={{ fill: 'var(--neu-shadow-dark)', opacity: 0.1 }}
-                                    contentStyle={{
-                                        background: 'var(--neu-bg)',
-                                        borderRadius: 'var(--neu-radius-sm)',
-                                        border: 'none',
-                                        boxShadow: 'var(--neu-card-shadow)',
-                                        padding: '0.5rem'
-                                    }}
-                                    itemStyle={{ color: 'var(--neu-text-primary)', fontSize: '0.75rem' }}
-                                    formatter={(val) => [val, 'Value']}
-                                    labelStyle={{ display: 'none' }}
-                                />
-                                <Bar dataKey="value" radius={[2, 2, 0, 0]}>
-                                    {chartData.map((entry, index) => (
-                                        <Cell
-                                            key={`cell-${index}`}
-                                            fill={entry.value >= 0 ? 'var(--neu-success)' : 'var(--neu-error)'}
-                                            opacity={0.8}
-                                        />
-                                    ))}
-                                </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
+                        <div className="mini-bar-chart">
+                            {rawChartData.map((v, i) => {
+                                const heightPct = Math.round((Math.abs(v) / maxVal) * 100);
+                                const isPositive = v >= 0;
+                                return (
+                                    <div
+                                        key={i}
+                                        className={`mini-bar-col ${isPositive ? 'positive' : 'negative'}`}
+                                        style={{ height: `${heightPct}%` }}
+                                        title={`Value: ${v}`}
+                                    />
+                                );
+                            })}
+                        </div>
                     </div>
                 );
             case 'trend':

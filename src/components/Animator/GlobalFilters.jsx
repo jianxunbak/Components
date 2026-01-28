@@ -111,13 +111,13 @@ const GlobalFilters = () => {
 
                     <feGaussianBlur in="SourceGraphic" stdDeviation="0.6" result="featheredGraphic" />
 
-                    <feGaussianBlur in="SourceAlpha" stdDeviation="40" result="internalBlur" />
+                    <feGaussianBlur in="SourceAlpha" stdDeviation="25" result="internalBlur" />
                     <feFlood floodColor="var(--neu-shadow-dark)" floodOpacity="var(--neu-svg-dip-opacity)" result="floodDip" />
                     <feComposite in="floodDip" in2="internalBlur" operator="in" result="internalVolume" />
 
                     <feOffset ref={inBevelShadowOffsetRef} dx="15" dy="15" in="SourceAlpha" result="innerDishShadowOffset" />
                     <feComposite operator="out" in="SourceAlpha" in2="innerDishShadowOffset" result="innerDishShadowBevel" />
-                    <feGaussianBlur ref={inBevelShadowBlurRef} in="innerDishShadowBevel" stdDeviation="15" result="blurInnerDishShadow" />
+                    <feGaussianBlur ref={inBevelShadowBlurRef} in="innerDishShadowBevel" stdDeviation="10" result="blurInnerDishShadow" />
                     <feFlood floodColor="var(--neu-shadow-light)" floodOpacity="var(--neu-svg-inner-highlight-intensity)" result="floodInnerDishShadow" />
                     <feComposite in="floodInnerDishShadow" in2="blurInnerDishShadow" operator="in" result="highlightSoftLip" />
 
